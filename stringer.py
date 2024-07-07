@@ -1,14 +1,13 @@
 import threading
 import tkinter as tk
-from tkinter import filedialog, messagebox
-from tkinter import simpledialog
+from tkinter import filedialog, messagebox, simpledialog
 from libstringer import *
 
 
 class StringManipulationGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("String Manipulation Utilities")
+        self.root.title("Stringer")
         self.create_widgets()
 
     def create_widgets(self):
@@ -41,6 +40,26 @@ class StringManipulationGUI:
             self.root, text="To Lowercase", command=self.to_lowercase
         )
         self.lower_button.pack()
+
+        self.replace_eol_button = tk.Button(
+            self.root, text="Replace End of Line", command=self.replace_end_of_line
+        )
+        self.replace_eol_button.pack()
+
+        self.replace_start_button = tk.Button(
+            self.root, text="Replace Start of Line", command=self.replace_start_of_line
+        )
+        self.replace_start_button.pack()
+
+        self.replace_sequence_button = tk.Button(
+            self.root, text="Replace Sequence", command=self.replace_sequence
+        )
+        self.replace_sequence_button.pack()
+
+        self.replace_all_newlines_button = tk.Button(
+            self.root, text="Replace All Newlines", command=self.replace_all_newlines
+        )
+        self.replace_all_newlines_button.pack()
 
         # Text area for output
         self.output_text = tk.Text(self.root, height=10, width=50)
@@ -100,6 +119,57 @@ class StringManipulationGUI:
 
     def run_to_lowercase(self, text):
         result = to_lowercase(text)
+        self.root.after(0, lambda: self.set_output_text(result))
+
+    def replace_end_of_line(self):
+        text = self.get_input_text()
+        replacement = simpledialog.askstring(
+            "Input", "Enter the replacement text for end of line:"
+        )
+        threading.Thread(
+            target=self.run_replace_end_of_line, args=(text, replacement)
+        ).start()
+
+    def run_replace_end_of_line(self, text, replacement):
+        result = replace_end_of_line(text, replacement)
+        self.root.after(0, lambda: self.set_output_text(result))
+
+    def replace_all_newlines(self):
+        text = self.get_input_text()
+        replacement = simpledialog.askstring(
+            "Input", "Enter the replacement text for all newlines:"
+        )
+        threading.Thread(
+            target=self.run_replace_all_newlines, args=(text, replacement)
+        ).start()
+
+    def run_replace_all_newlines(self, text, replacement):
+        result = replace_all_newlines(text, replacement)
+        self.root.after(0, lambda: self.set_output_text(result))
+
+    def replace_start_of_line(self):
+        text = self.get_input_text()
+        replacement = simpledialog.askstring(
+            "Input", "Enter the replacement text for start of line:"
+        )
+        threading.Thread(
+            target=self.run_replace_start_of_line, args=(text, replacement)
+        ).start()
+
+    def run_replace_start_of_line(self, text, replacement):
+        result = replace_start_of_line(text, replacement)
+        self.root.after(0, lambda: self.set_output_text(result))
+
+    def replace_sequence(self):
+        text = self.get_input_text()
+        sequence = simpledialog.askstring("Input", "Enter the sequence to replace:")
+        replacement = simpledialog.askstring("Input", "Enter the replacement text:")
+        threading.Thread(
+            target=self.run_replace_sequence, args=(text, sequence, replacement)
+        ).start()
+
+    def run_replace_sequence(self, text, sequence, replacement):
+        result = replace_sequence(text, sequence, replacement)
         self.root.after(0, lambda: self.set_output_text(result))
 
 

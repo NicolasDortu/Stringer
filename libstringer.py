@@ -40,6 +40,31 @@ lib.find_substring.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
 lib.find_substring.restype = ctypes.c_int
 lib.to_uppercase.argtypes = [ctypes.c_char_p]
 lib.to_lowercase.argtypes = [ctypes.c_char_p]
+lib.replace_end_of_line.argtypes = [
+    ctypes.c_char_p,
+    ctypes.c_char_p,
+    ctypes.c_char_p,
+    ctypes.c_int,
+]
+lib.replace_all_newlines.argtypes = [
+    ctypes.c_char_p,
+    ctypes.c_char_p,
+    ctypes.c_char_p,
+    ctypes.c_int,
+]
+lib.replace_start_of_line.argtypes = [
+    ctypes.c_char_p,
+    ctypes.c_char_p,
+    ctypes.c_char_p,
+    ctypes.c_int,
+]
+lib.replace_sequence.argtypes = [
+    ctypes.c_char_p,
+    ctypes.c_char_p,
+    ctypes.c_char_p,
+    ctypes.c_char_p,
+    ctypes.c_int,
+]
 
 
 # Helper function to create a mutable buffer
@@ -79,3 +104,43 @@ def to_lowercase(s):
     buffer = create_buffer(s)
     lib.to_lowercase(buffer)
     return buffer.value.decode("utf-8", "replace")
+
+
+def replace_end_of_line(s, replacement):
+    buffer = create_buffer(s)
+    result_buffer = ctypes.create_string_buffer(len(s) + len(replacement) * 10)
+    lib.replace_end_of_line(
+        buffer, replacement.encode("utf-8"), result_buffer, len(result_buffer)
+    )
+    return result_buffer.value.decode("utf-8", "replace")
+
+
+def replace_all_newlines(s, replacement):
+    buffer = create_buffer(s)
+    result_buffer = ctypes.create_string_buffer(len(s) + len(replacement) * 10)
+    lib.replace_all_newlines(
+        buffer, replacement.encode("utf-8"), result_buffer, len(result_buffer)
+    )
+    return result_buffer.value.decode("utf-8", "replace")
+
+
+def replace_start_of_line(s, replacement):
+    buffer = create_buffer(s)
+    result_buffer = ctypes.create_string_buffer(len(s) + len(replacement) * 10)
+    lib.replace_start_of_line(
+        buffer, replacement.encode("utf-8"), result_buffer, len(result_buffer)
+    )
+    return result_buffer.value.decode("utf-8", "replace")
+
+
+def replace_sequence(s, sequence, replacement):
+    buffer = create_buffer(s)
+    result_buffer = ctypes.create_string_buffer(len(s) + len(replacement) * 10)
+    lib.replace_sequence(
+        buffer,
+        sequence.encode("utf-8"),
+        replacement.encode("utf-8"),
+        result_buffer,
+        len(result_buffer),
+    )
+    return result_buffer.value.decode("utf-8", "replace")
