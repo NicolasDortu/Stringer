@@ -12,6 +12,7 @@ class StringerGUI:
         self.root.configure(background="azure")
         self.create_widgets()
         self.center_window()
+        self.root.resizable(False, False)
 
     def create_widgets(self):
         # Text area for input
@@ -19,6 +20,9 @@ class StringerGUI:
             self.root,
             background="whitesmoke",
             foreground="dimgrey",
+            insertbackground="pink",
+            selectforeground="pink",
+            selectbackground="lemonchiffon",
             height=10,
             width=50,
         )
@@ -33,14 +37,23 @@ class StringerGUI:
             ),
         )
 
+        self.import_button = tk.Button(
+            self.root,
+            text="Import File",
+            command=self.import_file,
+            background="Pink",
+            font=("Arial", 10),
+        )
+        self.import_button.grid(row=1, columnspan=3, padx=10, pady=5, sticky="ew")
+
         # Buttons for string manipulation functions
         self.reverse_button = tk.Button(
             self.root,
-            text="Reverse String",
+            text="Reverse Text",
             command=self.reverse_string,
             background="lemonchiffon",
         )
-        self.reverse_button.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
+        self.reverse_button.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
 
         self.upper_button = tk.Button(
             self.root,
@@ -48,7 +61,7 @@ class StringerGUI:
             command=self.to_uppercase,
             background="lemonchiffon",
         )
-        self.upper_button.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
+        self.upper_button.grid(row=2, column=1, padx=10, pady=5, sticky="ew")
 
         self.lower_button = tk.Button(
             self.root,
@@ -56,7 +69,7 @@ class StringerGUI:
             command=self.to_lowercase,
             background="lemonchiffon",
         )
-        self.lower_button.grid(row=1, column=2, padx=10, pady=5, sticky="ew")
+        self.lower_button.grid(row=2, column=2, padx=10, pady=5, sticky="ew")
 
         self.replace_eol_button = tk.Button(
             self.root,
@@ -64,7 +77,7 @@ class StringerGUI:
             command=self.replace_end_of_line,
             background="lemonchiffon",
         )
-        self.replace_eol_button.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
+        self.replace_eol_button.grid(row=3, column=0, padx=10, pady=5, sticky="ew")
 
         self.replace_start_button = tk.Button(
             self.root,
@@ -72,7 +85,7 @@ class StringerGUI:
             command=self.replace_start_of_line,
             background="lemonchiffon",
         )
-        self.replace_start_button.grid(row=2, column=1, padx=10, pady=5, sticky="ew")
+        self.replace_start_button.grid(row=3, column=1, padx=10, pady=5, sticky="ew")
 
         self.sql_button = tk.Button(
             self.root,
@@ -80,7 +93,7 @@ class StringerGUI:
             command=self.sql_format,
             background="lemonchiffon",
         )
-        self.sql_button.grid(row=2, column=2, padx=10, pady=5, sticky="ew")
+        self.sql_button.grid(row=3, column=2, padx=10, pady=5, sticky="ew")
 
         self.replace_sequence_button = tk.Button(
             self.root,
@@ -88,7 +101,7 @@ class StringerGUI:
             command=self.replace_sequence,
             background="lemonchiffon",
         )
-        self.replace_sequence_button.grid(row=3, column=0, padx=10, pady=5, sticky="ew")
+        self.replace_sequence_button.grid(row=4, column=0, padx=10, pady=5, sticky="ew")
 
         self.find_all_button = tk.Button(
             self.root,
@@ -96,7 +109,7 @@ class StringerGUI:
             command=self.find_all_occurrences,
             background="lemonchiffon",
         )
-        self.find_all_button.grid(row=3, column=1, padx=10, pady=5, sticky="ew")
+        self.find_all_button.grid(row=4, column=1, padx=10, pady=5, sticky="ew")
 
         self.split_by_pattern_button = tk.Button(
             self.root,
@@ -104,17 +117,48 @@ class StringerGUI:
             command=self.split_by_pattern,
             background="lemonchiffon",
         )
-        self.split_by_pattern_button.grid(row=3, column=2, padx=10, pady=5, sticky="ew")
+        self.split_by_pattern_button.grid(row=4, column=2, padx=10, pady=5, sticky="ew")
 
         # Text area for output
         self.output_text = tk.Text(
             self.root,
             background="whitesmoke",
             foreground="dimgrey",
+            insertbackground="pink",
+            selectforeground="pink",
+            selectbackground="lemonchiffon",
             height=10,
             width=50,
         )
-        self.output_text.grid(row=4, column=0, columnspan=3, padx=10, pady=10)
+        self.output_text.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
+
+        self.copy_to_clipboard_button = tk.Button(
+            self.root,
+            text="Copy to Clipboard",
+            command=self.copy_to_clipboard,
+            background="lemonchiffon",
+        )
+        self.copy_to_clipboard_button.grid(
+            row=6, column=1, padx=10, pady=10, sticky="ew"
+        )
+
+        self.edit_output_text_button = tk.Button(
+            self.root,
+            text="Edit Output Text",
+            command=self.edit_output_text,
+            background="lemonchiffon",
+        )
+        self.edit_output_text_button.grid(
+            row=6, column=0, padx=10, pady=10, sticky="ew"
+        )
+
+        self.export_button = tk.Button(
+            self.root,
+            text="Export Text",
+            command=self.export_text,
+            background="pink",
+        )
+        self.export_button.grid(row=6, column=2, padx=10, pady=10, sticky="ew")
 
     def center_window(self):
         self.root.update_idletasks()
@@ -130,6 +174,21 @@ class StringerGUI:
     def set_output_text(self, text):
         self.output_text.delete("1.0", tk.END)
         self.output_text.insert(tk.END, text)
+
+    def copy_to_clipboard(self):
+        self.root.clipboard_clear()
+        self.root.clipboard_append(self.output_text.get("1.0", tk.END))
+
+    def edit_output_text(self):
+        text = self.output_text.get("1.0", tk.END)
+        self.input_text.delete("1.0", tk.END)
+        self.input_text.insert(tk.END, text)
+
+    def import_file(self):
+        pass
+
+    def export_text(self):
+        pass
 
     def reverse_string(self):
         text = self.get_input_text()
