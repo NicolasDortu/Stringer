@@ -1,69 +1,128 @@
 import threading
 import tkinter as tk
-from tkinter import filedialog, messagebox, simpledialog
+from tkinter import simpledialog
 from libstringer import *
 
 
-class StringManipulationGUI:
+class StringerGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Stringer")
+        self.root.iconbitmap(default="./resources/icon.ico")
+        self.root.configure(background="azure")
         self.create_widgets()
+        self.center_window()
 
     def create_widgets(self):
         # Text area for input
-        self.input_text = tk.Text(self.root, height=10, width=50)
-        self.input_text.pack()
+        self.input_text = tk.Text(
+            self.root,
+            background="whitesmoke",
+            foreground="dimgrey",
+            height=10,
+            width=50,
+        )
+        self.input_text.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
+        self.input_text.insert(tk.INSERT, "Enter text here...")
+        self.input_text.bind(
+            "<FocusIn>",
+            lambda event: (
+                self.input_text.delete("1.0", tk.END)
+                if self.input_text.get("1.0", tk.END).strip() == "Enter text here..."
+                else None
+            ),
+        )
 
         # Buttons for string manipulation functions
         self.reverse_button = tk.Button(
-            self.root, text="Reverse String", command=self.reverse_string
+            self.root,
+            text="Reverse String",
+            command=self.reverse_string,
+            background="lemonchiffon",
         )
-        self.reverse_button.pack()
-
-        self.concat_button = tk.Button(
-            self.root, text="Concatenate Strings", command=self.concatenate_strings
-        )
-        self.concat_button.pack()
-
-        self.find_button = tk.Button(
-            self.root, text="Find Substring", command=self.find_substring
-        )
-        self.find_button.pack()
+        self.reverse_button.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
 
         self.upper_button = tk.Button(
-            self.root, text="To Uppercase", command=self.to_uppercase
+            self.root,
+            text="To Uppercase",
+            command=self.to_uppercase,
+            background="lemonchiffon",
         )
-        self.upper_button.pack()
+        self.upper_button.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
 
         self.lower_button = tk.Button(
-            self.root, text="To Lowercase", command=self.to_lowercase
+            self.root,
+            text="To Lowercase",
+            command=self.to_lowercase,
+            background="lemonchiffon",
         )
-        self.lower_button.pack()
+        self.lower_button.grid(row=1, column=2, padx=10, pady=5, sticky="ew")
 
         self.replace_eol_button = tk.Button(
-            self.root, text="Replace End of Line", command=self.replace_end_of_line
+            self.root,
+            text="Replace End of Line",
+            command=self.replace_end_of_line,
+            background="lemonchiffon",
         )
-        self.replace_eol_button.pack()
+        self.replace_eol_button.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
 
         self.replace_start_button = tk.Button(
-            self.root, text="Replace Start of Line", command=self.replace_start_of_line
+            self.root,
+            text="Replace Start of Line",
+            command=self.replace_start_of_line,
+            background="lemonchiffon",
         )
-        self.replace_start_button.pack()
+        self.replace_start_button.grid(row=2, column=1, padx=10, pady=5, sticky="ew")
+
+        self.sql_button = tk.Button(
+            self.root,
+            text="Format to SQL",
+            command=self.sql_format,
+            background="lemonchiffon",
+        )
+        self.sql_button.grid(row=2, column=2, padx=10, pady=5, sticky="ew")
 
         self.replace_sequence_button = tk.Button(
-            self.root, text="Replace Sequence", command=self.replace_sequence
+            self.root,
+            text="Replace Sequence",
+            command=self.replace_sequence,
+            background="lemonchiffon",
         )
-        self.replace_sequence_button.pack()
+        self.replace_sequence_button.grid(row=3, column=0, padx=10, pady=5, sticky="ew")
 
-        self.replace_all_newlines_button = tk.Button(
-            self.root, text="Replace All Newlines", command=self.replace_all_newlines
+        self.find_all_button = tk.Button(
+            self.root,
+            text="Find All Matches",
+            command=self.find_all_occurrences,
+            background="lemonchiffon",
         )
-        self.replace_all_newlines_button.pack()
+        self.find_all_button.grid(row=3, column=1, padx=10, pady=5, sticky="ew")
+
+        self.split_by_pattern_button = tk.Button(
+            self.root,
+            text="Split by Pattern",
+            command=self.split_by_pattern,
+            background="lemonchiffon",
+        )
+        self.split_by_pattern_button.grid(row=3, column=2, padx=10, pady=5, sticky="ew")
 
         # Text area for output
-        self.output_text = tk.Text(self.root, height=10, width=50)
-        self.output_text.pack()
+        self.output_text = tk.Text(
+            self.root,
+            background="whitesmoke",
+            foreground="dimgrey",
+            height=10,
+            width=50,
+        )
+        self.output_text.grid(row=4, column=0, columnspan=3, padx=10, pady=10)
+
+    def center_window(self):
+        self.root.update_idletasks()
+        width = self.root.winfo_width()
+        height = self.root.winfo_height()
+        x = (self.root.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.root.winfo_screenheight() // 2) - (height // 2)
+        self.root.geometry("{}x{}+{}+{}".format(width, height, x, y))
 
     def get_input_text(self):
         return self.input_text.get("1.0", tk.END).strip()
@@ -78,31 +137,6 @@ class StringManipulationGUI:
 
     def run_reverse_string(self, text):
         result = reverse_string(text)
-        self.root.after(0, lambda: self.set_output_text(result))
-
-    def concatenate_strings(self):
-        text1 = self.get_input_text()
-        text2 = simpledialog.askstring("Input", "Enter the string to concatenate:")
-        threading.Thread(
-            target=self.run_concatenate_strings, args=(text1, text2)
-        ).start()
-
-    def run_concatenate_strings(self, text1, text2):
-        result = concatenate_strings(text1, text2)
-        self.root.after(0, lambda: self.set_output_text(result))
-
-    def find_substring(self):
-        text = self.get_input_text()
-        substr = simpledialog.askstring("Input", "Enter the substring to find:")
-        threading.Thread(target=self.run_find_substring, args=(text, substr)).start()
-
-    def run_find_substring(self, text, substr):
-        index = find_substring(text, substr)
-        result = (
-            f"Substring found at index: {index}"
-            if index != -1
-            else "Substring not found"
-        )
         self.root.after(0, lambda: self.set_output_text(result))
 
     def to_uppercase(self):
@@ -134,17 +168,12 @@ class StringManipulationGUI:
         result = replace_end_of_line(text, replacement)
         self.root.after(0, lambda: self.set_output_text(result))
 
-    def replace_all_newlines(self):
+    def sql_format(self):
         text = self.get_input_text()
-        replacement = simpledialog.askstring(
-            "Input", "Enter the replacement text for all newlines:"
-        )
-        threading.Thread(
-            target=self.run_replace_all_newlines, args=(text, replacement)
-        ).start()
+        threading.Thread(target=self.run_sql_format, args=(text,)).start()
 
-    def run_replace_all_newlines(self, text, replacement):
-        result = replace_all_newlines(text, replacement)
+    def run_sql_format(self, text):
+        result = sql_format(text)
         self.root.after(0, lambda: self.set_output_text(result))
 
     def replace_start_of_line(self):
@@ -172,8 +201,37 @@ class StringManipulationGUI:
         result = replace_sequence(text, sequence, replacement)
         self.root.after(0, lambda: self.set_output_text(result))
 
+    def find_all_occurrences(self):
+        text = self.get_input_text()
+        pattern = simpledialog.askstring(
+            "Input", "Enter the pattern to find all occurrences:"
+        )
+        threading.Thread(
+            target=self.run_find_all_occurrences, args=(text, pattern)
+        ).start()
+
+    def run_find_all_occurrences(self, text, pattern):
+        matches = find_all_occurrences(text, pattern)
+        result = "\n".join(
+            [
+                f"Match {i+1}: Start={start}, End={end}"
+                for i, (start, end) in enumerate(matches)
+            ]
+        )
+        self.root.after(0, lambda: self.set_output_text(result))
+
+    def split_by_pattern(self):
+        text = self.get_input_text()
+        pattern = simpledialog.askstring("Input", "Enter the pattern to split by:")
+        threading.Thread(target=self.run_split_by_pattern, args=(text, pattern)).start()
+
+    def run_split_by_pattern(self, text, pattern):
+        parts = split_by_pattern(text, pattern)
+        result = "\n".join([f"{part}" for i, part in enumerate(parts)])
+        self.root.after(0, lambda: self.set_output_text(result))
+
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = StringManipulationGUI(root)
+    app = StringerGUI(root)
     root.mainloop()
