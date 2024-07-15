@@ -185,26 +185,38 @@ void replace_sequence(const char *str, const char *sequence, const char *replace
   int offset = 0;
   const char *current = str;
   const char *match;
+  int sequence_len = strlen(sequence);
+  int replacement_len = strlen(replacement);
+
   while ((match = strstr(current, sequence)) != NULL)
   {
     int len = match - current;
     if (offset + len >= result_size)
       break; // Avoid overflow
+
+    // Copy the part before the match
     snprintf(result + offset, len + 1, "%s", current);
     offset += len;
-    if (offset + strlen(replacement) >= result_size)
+
+    if (offset + replacement_len >= result_size)
       break; // Avoid overflow
-    snprintf(result + offset, strlen(replacement) + 1, "%s", replacement);
-    offset += strlen(replacement);
-    current = match + strlen(sequence);
+
+    // Copy the replacement
+    snprintf(result + offset, replacement_len + 1, "%s", replacement);
+    offset += replacement_len;
+
+    // Move the current pointer past the sequence
+    current = match + sequence_len;
   }
+
+  // Copy the remaining part of the string
   if (offset + strlen(current) < result_size)
   {
-    snprintf(result + offset, strlen(current) + 1, "%s", current);
+    snprintf(result + offset, result_size - offset, "%s", current);
   }
-  if (offset < result_size)
+  else if (offset < result_size)
   {
-    result[offset] = '\0';
+    result[offset] = '\0'; // Null-terminate the result
   }
 }
 

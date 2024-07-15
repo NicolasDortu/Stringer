@@ -1,6 +1,9 @@
 import threading
 import tkinter as tk
-from tkinter import simpledialog
+from tkinter import simpledialog, filedialog, messagebox
+import json
+import csv
+import xml.etree.ElementTree as ET
 from libstringer import *
 
 
@@ -10,9 +13,12 @@ class StringerGUI:
         self.root.title("Stringer")
         self.root.iconbitmap(default="./resources/icon.ico")
         self.root.configure(background="azure")
+        self.root.option_add("*Foreground", "hotpink")
         self.create_widgets()
         self.center_window()
         self.root.resizable(False, False)
+        self.file_path = None
+        self.file_type = None
 
     def create_widgets(self):
         # Text area for input
@@ -42,7 +48,8 @@ class StringerGUI:
             text="Import File",
             command=self.import_file,
             background="Pink",
-            font=("Arial", 10),
+            foreground="ivory",
+            font=("Arial", 10, "bold"),
         )
         self.import_button.grid(row=1, columnspan=3, padx=10, pady=5, sticky="ew")
 
@@ -157,6 +164,7 @@ class StringerGUI:
             text="Export Text",
             command=self.export_text,
             background="pink",
+            foreground="ivory",
         )
         self.export_button.grid(row=6, column=2, padx=10, pady=10, sticky="ew")
 
@@ -185,92 +193,209 @@ class StringerGUI:
         self.input_text.insert(tk.END, text)
 
     def import_file(self):
-        pass
+        file_path = filedialog.askopenfilename(
+            filetypes=(
+                ("All Files", "*.*"),
+                ("CSV Files", "*.csv"),
+                ("JSON Files", "*.json"),
+                ("XML Files", "*.xml"),
+                ("Text Files", "*.txt"),
+                ("SQL Files", "*.sql"),
+                ("HTML Files", "*.html"),
+            )
+        )
+        if not file_path:
+            return
+
+        self.file_path = file_path
+        self.file_type = file_path.split(".")[-1].lower()
+
+        try:
+            if self.file_type == "csv":
+                with open(file_path, newline="", encoding="utf-8") as csvfile:
+                    reader = csv.reader(csvfile)
+                    content = "\n".join([",".join(row) for row in reader])
+            elif self.file_type == "json":
+                with open(file_path, "r", encoding="utf-8") as jsonfile:
+                    content = json.dumps(json.load(jsonfile), indent=4)
+            elif self.file_type == "xml":
+                tree = ET.parse(file_path)
+                content = ET.tostring(tree.getroot(), encoding="unicode")
+            elif self.file_type == "txt":
+                with open(file_path, "r", encoding="utf-8") as txtfile:
+                    content = txtfile.read()
+            elif self.file_type == "sql":
+                with open(file_path, "r", encoding="utf-8") as sqlfile:
+                    content = sqlfile.read()
+            elif self.file_type == "html":
+                with open(file_path, "r", encoding="utf-8") as htmlfile:
+                    content = htmlfile.read()
+            else:
+                content = ""
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to import file: {str(e)}")
+            return
+
+        self.input_text.delete("1.0", tk.END)
+        self.input_text.insert(tk.END, "File imported!")
+
+        self.input_content = content
 
     def export_text(self):
-        pass
+        if not self.file_path or not self.file_type:
+            messagebox.showwarning("Warning", "No file to export.")
+            return
+
+        save_path = filedialog.asksaveasfilename(
+            defaultextension=f".{self.file_type}",
+            filetypes=(
+                ("All Files", "*.*"),
+                ("CSV Files", "*.csv"),
+                ("JSON Files", "*.json"),
+                ("XML Files", "*.xml"),
+                ("Text Files", "*.txt"),
+                ("SQL Files", "*.sql"),
+                ("HTML Files", "*.html"),
+            ),
+        )
+        if not save_path:
+            return
+
+        output_text = self.output_text.get("1.0", tk.END).strip()
+
+        try:
+            if self.file_type == "csv":
+                with open(save_path, "w", newline="", encoding="utf-8") as csvfile:
+                    writer = csv.writer(csvfile)
+                    for row in output_text.split("\n"):
+                        writer.writerow(row.split(","))
+            elif self.file_type == "json":
+                with open(save_path, "w", encoding="utf-8") as jsonfile:
+                    json.dump(json.loads(output_text), jsonfile, indent=4)
+            elif self.file_type == "xml":
+                root = ET.ElementTree(ET.fromstring(output_text))
+                root.write(save_path)
+            elif self.file_type == "txt":
+                with open(save_path, "w", encoding="utf-8") as txtfile:
+                    txtfile.write(output_text)
+            elif self.file_type == "sql":
+                with open(save_path, "w", encoding="utf-8") as sqlfile:
+                    sqlfile.write(output_text)
+            elif self.file_type == "html":
+                with open(save_path, "w", encoding="utf-8") as htmlfile:
+                    htmlfile.write(output_text)
+            else:
+                messagebox.showwarning("Warning", "Unsupported file type.")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to export file: {str(e)}")
 
     def reverse_string(self):
-        text = self.get_input_text()
-        threading.Thread(target=self.run_reverse_string, args=(text,)).start()
+        threading.Thread(target=self.run_reverse_string).start()
 
-    def run_reverse_string(self, text):
-        result = reverse_string(text)
+    def run_reverse_string(self):
+        text = self.get_input_text()
+        if text != "File imported!":
+            result = reverse_string(text)
+        else:
+            result = reverse_string(self.input_content)
         self.root.after(0, lambda: self.set_output_text(result))
 
     def to_uppercase(self):
-        text = self.get_input_text()
-        threading.Thread(target=self.run_to_uppercase, args=(text,)).start()
+        threading.Thread(target=self.run_to_uppercase).start()
 
-    def run_to_uppercase(self, text):
-        result = to_uppercase(text)
+    def run_to_uppercase(self):
+        text = self.get_input_text()
+        if text != "File imported!":
+            result = to_uppercase(text)
+        else:
+            result = to_uppercase(self.input_content)
         self.root.after(0, lambda: self.set_output_text(result))
 
     def to_lowercase(self):
-        text = self.get_input_text()
-        threading.Thread(target=self.run_to_lowercase, args=(text,)).start()
+        threading.Thread(target=self.run_to_lowercase).start()
 
-    def run_to_lowercase(self, text):
-        result = to_lowercase(text)
+    def run_to_lowercase(self):
+        text = self.get_input_text()
+        if text != "File imported!":
+            result = to_lowercase(text)
+        else:
+            result = to_lowercase(self.input_content)
         self.root.after(0, lambda: self.set_output_text(result))
 
     def replace_end_of_line(self):
-        text = self.get_input_text()
         replacement = simpledialog.askstring(
             "Input", "Enter the replacement text for end of line:"
         )
         threading.Thread(
-            target=self.run_replace_end_of_line, args=(text, replacement)
+            target=self.run_replace_end_of_line, args=(replacement,)
         ).start()
 
-    def run_replace_end_of_line(self, text, replacement):
-        result = replace_end_of_line(text, replacement)
+    def run_replace_end_of_line(self, replacement):
+        text = self.get_input_text()
+        if text != "File imported!":
+            result = replace_end_of_line(text, replacement)
+        else:
+            result = replace_end_of_line(self.input_content, replacement)
         self.root.after(0, lambda: self.set_output_text(result))
 
     def sql_format(self):
-        text = self.get_input_text()
-        threading.Thread(target=self.run_sql_format, args=(text,)).start()
+        threading.Thread(target=self.run_sql_format).start()
 
-    def run_sql_format(self, text):
-        result = sql_format(text)
+    def run_sql_format(self):
+        text = self.get_input_text()
+        if text != "File imported!":
+            result = sql_format(text)
+        else:
+            result = sql_format(self.input_content)
         self.root.after(0, lambda: self.set_output_text(result))
 
     def replace_start_of_line(self):
-        text = self.get_input_text()
         replacement = simpledialog.askstring(
             "Input", "Enter the replacement text for start of line:"
         )
         threading.Thread(
-            target=self.run_replace_start_of_line, args=(text, replacement)
+            target=self.run_replace_start_of_line, args=(replacement,)
         ).start()
 
-    def run_replace_start_of_line(self, text, replacement):
-        result = replace_start_of_line(text, replacement)
+    def run_replace_start_of_line(self, replacement):
+        text = self.get_input_text()
+        if text != "File imported!":
+            result = replace_start_of_line(text, replacement)
+        else:
+            result = replace_start_of_line(self.input_content, replacement)
         self.root.after(0, lambda: self.set_output_text(result))
 
     def replace_sequence(self):
-        text = self.get_input_text()
-        sequence = simpledialog.askstring("Input", "Enter the sequence to replace:")
-        replacement = simpledialog.askstring("Input", "Enter the replacement text:")
+        sequence = simpledialog.askstring(
+            "Input", "Enter the sequence to replace:", parent=self.root
+        )
+        replacement = simpledialog.askstring(
+            "Input", "Enter the replacement text:", parent=self.root
+        )
         threading.Thread(
-            target=self.run_replace_sequence, args=(text, sequence, replacement)
+            target=self.run_replace_sequence, args=(sequence, replacement)
         ).start()
 
-    def run_replace_sequence(self, text, sequence, replacement):
-        result = replace_sequence(text, sequence, replacement)
+    def run_replace_sequence(self, sequence, replacement):
+        text = self.get_input_text()
+        if text != "File imported!":
+            result = replace_sequence(text, sequence, replacement)
+        else:
+            result = replace_sequence(self.input_content, sequence, replacement)
         self.root.after(0, lambda: self.set_output_text(result))
 
     def find_all_occurrences(self):
-        text = self.get_input_text()
         pattern = simpledialog.askstring(
             "Input", "Enter the pattern to find all occurrences:"
         )
-        threading.Thread(
-            target=self.run_find_all_occurrences, args=(text, pattern)
-        ).start()
+        threading.Thread(target=self.run_find_all_occurrences, args=(pattern,)).start()
 
-    def run_find_all_occurrences(self, text, pattern):
-        matches = find_all_occurrences(text, pattern)
+    def run_find_all_occurrences(self, pattern):
+        text = self.get_input_text()
+        if text != "File imported!":
+            matches = find_all_occurrences(text, pattern)
+        else:
+            matches = find_all_occurrences(self.input_content, pattern)
         result = "\n".join(
             [
                 f"Match {i+1}: Start={start}, End={end}"
@@ -280,12 +405,15 @@ class StringerGUI:
         self.root.after(0, lambda: self.set_output_text(result))
 
     def split_by_pattern(self):
-        text = self.get_input_text()
         pattern = simpledialog.askstring("Input", "Enter the pattern to split by:")
-        threading.Thread(target=self.run_split_by_pattern, args=(text, pattern)).start()
+        threading.Thread(target=self.run_split_by_pattern, args=(pattern,)).start()
 
-    def run_split_by_pattern(self, text, pattern):
-        parts = split_by_pattern(text, pattern)
+    def run_split_by_pattern(self, pattern):
+        text = self.get_input_text()
+        if text != "File imported!":
+            parts = split_by_pattern(text, pattern)
+        else:
+            parts = split_by_pattern(self.input_content, pattern)
         result = "\n".join([f"{part}" for i, part in enumerate(parts)])
         self.root.after(0, lambda: self.set_output_text(result))
 
