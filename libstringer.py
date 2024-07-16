@@ -83,7 +83,7 @@ lib.free_split_results.restype = None
 # Helper function to create a mutable buffer
 def create_buffer(s):
     encoded = s.encode("utf-8", "replace")
-    buffer = ctypes.create_string_buffer(encoded, len(encoded) + 1)
+    buffer = ctypes.create_string_buffer(encoded, len(encoded) + 2)
     return buffer
 
 
@@ -133,7 +133,7 @@ def to_lowercase(s):
 def replace_end_of_line(s, replacement):
     buffer = create_buffer(s)
     required_size = calculate_required_size(s, eol_replacement=replacement)
-    result_buffer = ctypes.create_string_buffer(required_size)
+    result_buffer = ctypes.create_string_buffer(required_size + len(s))
     lib.replace_end_of_line(
         buffer, replacement.encode("utf-8"), result_buffer, len(result_buffer)
     )
@@ -143,7 +143,7 @@ def replace_end_of_line(s, replacement):
 def replace_start_of_line(s, replacement):
     buffer = create_buffer(s)
     required_size = calculate_required_size(s, start_replacement=replacement)
-    result_buffer = ctypes.create_string_buffer(required_size)
+    result_buffer = ctypes.create_string_buffer(required_size + len(s))
     lib.replace_start_of_line(
         buffer, replacement.encode("utf-8"), result_buffer, len(result_buffer)
     )
