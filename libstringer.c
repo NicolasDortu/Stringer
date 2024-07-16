@@ -1,8 +1,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
-// Check here for regex : https://github.com/kokke/tiny-regex-c/blob/master/re.c
-// And here : https://www.cs.princeton.edu/courses/archive/spr09/cos333/beautiful.html
 
 // Function to calculate the required buffer size for generic string modifications
 int calculate_required_size(const char *str, const char *start_replacement, const char *end_replacement, const char *eol_replacement, const char *sequence, const char *replacement)
@@ -221,7 +219,6 @@ void replace_sequence(const char *str, const char *sequence, const char *replace
 }
 
 // Function to find all matches of a pattern
-// --> (should be highlighted in the string)
 int find_all_occurrences(const char *str, const char *pattern, int *start_indices, int *end_indices, int max_matches)
 {
   int match_count = 0;

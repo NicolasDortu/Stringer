@@ -14,6 +14,7 @@ class StringerGUI:
         self.root.iconbitmap(default="./resources/icon.ico")
         self.root.configure(background="azure")
         self.root.option_add("*Foreground", "hotpink")
+        self.root.option_add("*Background", "lemonchiffon")
         self.create_widgets()
         self.center_window()
         self.root.resizable(False, False)
@@ -41,6 +42,10 @@ class StringerGUI:
                 if self.input_text.get("1.0", tk.END).strip() == "Enter text here..."
                 else None
             ),
+        )
+
+        self.input_text.tag_configure(
+            "highlight", background="pink", foreground="ivory"
         )
 
         self.import_button = tk.Button(
@@ -394,15 +399,34 @@ class StringerGUI:
         text = self.get_input_text()
         if text != "File imported!":
             matches = find_all_occurrences(text, pattern)
+            result = f"Total matches : {len(matches)}\n"
+            result = result + "\n".join(
+                [
+                    f"Match {i+1}: Start={start}, End={end}"
+                    for i, (start, end) in enumerate(matches)
+                ]
+            )
+            self.root.after(
+                0, lambda: self.highlight_matches_and_set_output(result, matches)
+            )
         else:
             matches = find_all_occurrences(self.input_content, pattern)
-        result = "\n".join(
-            [
-                f"Match {i+1}: Start={start}, End={end}"
-                for i, (start, end) in enumerate(matches)
-            ]
-        )
-        self.root.after(0, lambda: self.set_output_text(result))
+            result = f"Total matches : {len(matches)}\n"
+            result = result + "\n".join(
+                [
+                    f"Match {i+1}: Start={start}, End={end}"
+                    for i, (start, end) in enumerate(matches)
+                ]
+            )
+            self.root.after(0, lambda: self.set_output_text(result))
+
+    def highlight_matches_and_set_output(self, result, matches):
+        self.set_output_text(result)
+        self.input_text.tag_remove("highlight", "1.0", tk.END)
+        for start, end in matches:
+            self.input_text.tag_add(
+                "highlight", f"1.0 + {start} chars", f"1.0 + {end} chars"
+            )
 
     def split_by_pattern(self):
         pattern = simpledialog.askstring("Input", "Enter the pattern to split by:")
